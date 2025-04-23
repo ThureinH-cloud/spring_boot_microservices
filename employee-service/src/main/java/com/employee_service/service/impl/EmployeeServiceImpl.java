@@ -3,6 +3,7 @@ package com.employee_service.service.impl;
 import com.employee_service.dto.APIResponseDto;
 import com.employee_service.dto.DepartmentDto;
 import com.employee_service.dto.EmployeeDto;
+import com.employee_service.dto.OrganizationDto;
 import com.employee_service.entity.Employee;
 import com.employee_service.mapper.EmployeeMapper;
 import com.employee_service.repository.EmployeeRepository;
@@ -16,7 +17,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @RequiredArgsConstructor
 public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
-//    private final WebClient webClient;
+    private final WebClient webClient;
     private final APIClient apiClient;
     @Override
     public EmployeeDto save(EmployeeDto employeeDto) {
@@ -28,13 +29,15 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public APIResponseDto getEmployeeById(Long id) {
        Employee employee=employeeRepository.findById(id).orElseThrow(()->new RuntimeException("Employee Not Found"));
-//       DepartmentDto departmentDto= webClient.get().uri("http://localhost:8080/api/departments/"+employee
-//               .getDepartmentCode()).retrieve().bodyToMono(DepartmentDto.class).block();
-       DepartmentDto departmentDto=apiClient.getDepartmentByCode(employee.getDepartmentCode());
+       DepartmentDto departmentDto= webClient.get().uri("http://localhost:8080/api/departments/"+employee
+               .getDepartmentCode()).retrieve().bodyToMono(DepartmentDto.class).block();
+        OrganizationDto organizationDto=webClient.get().uri("http://localhost:8083/api/organizations/"+employee.getOrganizationCode()).retrieve().bodyToMono(OrganizationDto.class).block();
+//       DepartmentDto departmentDto=apiClient.getDepartmentByCode(employee.getDepartmentCode());
        EmployeeDto employeeDto= EmployeeMapper.mapToEmployeeDto(employee);
        APIResponseDto apiResponseDto=new APIResponseDto();
        apiResponseDto.setEmployee(employeeDto);
        apiResponseDto.setDepartment(departmentDto);
+       apiResponseDto.setOrganization(organizationDto);
        return apiResponseDto;
 
     }
